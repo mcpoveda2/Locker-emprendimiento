@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Copy, RefreshCw, Settings } from 'lucide-react';
 
+import HelloAgent from '../components/HelloAgent';
+
+
 const PasswordGenerator = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -52,6 +55,8 @@ const PasswordGenerator = () => {
       generatePassword();
     }
   };
+
+  {/*Generacion de contraseña*/}
 
   const generatePassword = async () => {
     setIsGenerating(true);
@@ -130,6 +135,8 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
       setIsGenerating(false);
     }
   };
+  
+  {/*Contraseña local*/}
 
   const generateMockPassword = () => {
     const { platform, personalElement, context } = formData;
@@ -144,6 +151,7 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
     
     return `${personalWord}En${platformWord}${contextWord}${numbers}${symbols}`;
   };
+
 
   const copyToClipboard = async () => {
     try {
@@ -168,20 +176,25 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
     setFeedback('');
   };
 
+
+  {/*Si esta generado la contraseña*/}
+
+
   if (generatedPassword) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-lg max-w-md w-full p-8">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-gray-600" />
-            </div>
-            <h1 className="text-xl font-semibold text-gray-800 mb-2">Hola Agent</h1>
-            <p className="text-gray-600">Michael Miranda</p>
-          </div>
+
+          {/*Saludo*/}
+
+          <HelloAgent name={"Michael Poveda"}/>
 
           <div className="space-y-6">
+
+            {/*Mostrar contraseñas*/}
+
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+
               <p className="text-green-800 font-medium mb-3">Tu contraseña segura generada con IA:</p>
               <div className="bg-white rounded-lg p-3 border border-green-200">
                 <div className="flex items-center justify-between">
@@ -206,6 +219,8 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
               </div>
             </div>
 
+            {/*Consejos */}
+
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <p className="text-blue-800 text-sm">
                 <strong>Consejos de seguridad:</strong><br/>
@@ -221,6 +236,8 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
                 <p className="text-gray-700 text-sm">{feedback}</p>
               </div>
             )}
+
+            {/*Botones */}
 
             <div className="flex space-x-3">
               <button
@@ -257,15 +274,13 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-lg max-w-md w-full p-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8 text-gray-600" />
-          </div>
-          <h1 className="text-xl font-semibold text-gray-800 mb-2">{steps[currentStep].title}</h1>
-          <p className="text-gray-600">{steps[currentStep].subtitle}</p>
-        </div>
+        {/*Saludo*/}
+
+        <HelloAgent name={steps[currentStep].subtitle}/>
 
         <div className="space-y-6">
+
+          {/* Questions */}
           <div className="bg-green-50 border border-green-200 rounded-xl p-4">
             <p className="text-green-800 font-medium mb-3">{steps[currentStep].question}</p>
             <div className="bg-white rounded-lg border border-green-200">
@@ -278,6 +293,8 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
               />
             </div>
           </div>
+
+          {/*Longitud de contraseña*/}
 
           {currentStep === steps.length - 1 && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
@@ -302,8 +319,9 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
           )}
 
           <div className="flex space-x-3">
+            {/*Boton siguiente o generar con ia*/}
             <button
-              onClick={handleNext}
+              onClick={handleNext} //sumar mas 1 o generar
               disabled={!formData[steps[currentStep].field].trim() || isGenerating}
               className="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-4 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -316,6 +334,7 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
                 currentStep === steps.length - 1 ? 'Generar con IA' : 'Siguiente'
               )}
             </button>
+
             {currentStep > 0 && (
               <button
                 onClick={() => setCurrentStep(currentStep - 1)}
