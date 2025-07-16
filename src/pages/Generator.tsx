@@ -12,10 +12,14 @@ const PasswordGenerator = () => {
     context: '',
     length: 'medium'
   });
+
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [feedback, setFeedback] = useState('');
+
+  const API_URL = 'http://localhost:5000/api/generate';
+  const HEALTH_URL = 'http://localhost:5000/api/health';
 
   const steps = [
     {
@@ -78,38 +82,29 @@ Contexto: ${formData.context}
 Longitud deseada: ${lengthMapping[formData.length]}
 
 INSTRUCCIONES ESPECÍFICAS:
-1. Combina estos elementos de manera natural y memorable
-2. Incluye mayúsculas, minúsculas, números y símbolos
-3. Hazla segura pero fácil de recordar
+1. Combina estos elementos de manera natural y memorable en FRASES (IMPORTANTE)
+2. Usa Mayusculas SOLO EN LA PRIMERA LETRA
+3. Hazla segura pero fácil de recordar (IMPORTANTE)
 4. Usa el elemento personal como base principal
 5. Integra la plataforma de manera orgánica
-6. Añade números y símbolos relevantes al contexto
+6. Añade números relevantes al contexto pero SIEMPRE AL FINAL
+7. NO USAR SIMBOLOS NI EMOJIS
 
-EJEMPLO: Si es para Facebook, le gusta la playa y es personal, podrías generar algo como "LaPlayaEnFacebook2024!"
+
+
+
+
+EJEMPLO: Si es para Facebook, le gusta la playa y es personal, podrías generar algo como "LaPlayaEnFacebook"
 
 Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.REACT_APP_GEMINI_API_KEY}`, {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 100,
-          }
+          prompt : prompt
         })
       });
 
@@ -118,8 +113,12 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
       }
 
       const data = await response.json();
-      const password = data.candidates[0].content.parts[0].text.trim();
-      
+      console.log(data["response"])
+      //const password = data.candidates[0].content.parts[0].text.trim();
+      const password = data["response"]
+      console.log(password)
+
+
       setGeneratedPassword(password);
       setFeedback('¡Contraseña generada exitosamente con IA! Es segura y memorable.');
       
@@ -239,6 +238,7 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
 
             {/*Botones */}
 
+
             <div className="flex space-x-3">
               <button
                 onClick={generatePassword}
@@ -260,6 +260,7 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
               </button>
             </div>
           </div>
+
 
           <div className="mt-8 text-center">
             <button className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -355,6 +356,8 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
               />
             ))}
           </div>
+
+
         </div>
 
         <div className="mt-8 text-center">
