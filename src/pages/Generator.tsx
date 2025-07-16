@@ -19,7 +19,6 @@ const PasswordGenerator = () => {
   const [feedback, setFeedback] = useState('');
 
   const API_URL = 'http://localhost:5000/api/generate';
-  const HEALTH_URL = 'http://localhost:5000/api/health';
 
   const steps = [
     {
@@ -92,8 +91,6 @@ INSTRUCCIONES ESPECÍFICAS:
 
 
 
-
-
 EJEMPLO: Si es para Facebook, le gusta la playa y es personal, podrías generar algo como "LaPlayaEnFacebook"
 
 Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
@@ -112,12 +109,8 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
         throw new Error(`Error: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log(data["response"])
-      //const password = data.candidates[0].content.parts[0].text.trim();
+      const data = await response.json();   
       const password = data["response"]
-      console.log(password)
-
 
       setGeneratedPassword(password);
       setFeedback('¡Contraseña generada exitosamente con IA! Es segura y memorable.');
@@ -175,9 +168,7 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
     setFeedback('');
   };
 
-
   {/*Si esta generado la contraseña*/}
-
 
   if (generatedPassword) {
     return (
