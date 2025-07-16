@@ -12,7 +12,7 @@ genai.configure(api_key=api)
 app = Flask(__name__)
 CORS(app)
 
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 def generar_respuestas(prompt):
     try:

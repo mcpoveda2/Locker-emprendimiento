@@ -1,8 +1,13 @@
+import React from "react";
 
+import SingOut from '../components/auth/SignOut'
 
 function Ajustes(){
     return(
-        <h1>Ajustes</h1>
+        <div className="flex items-center justify-center h-screen">
+            <SingOut/>  
+        </div>
+        
     );
 }
 

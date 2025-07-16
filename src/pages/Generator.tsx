@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff, Copy, RefreshCw, Settings } from 'lucide-react';
 
+
+//datos
+import {steps} from '../data/Pasos.js';
+import {lengthMapping} from '../data/length.js';
+
+//componentes
 import HelloAgent from '../components/HelloAgent';
 
+//firebase
+import {ref, push, set, onValue, serverTimestamp} from 'firebase/database'
+import { onAuthStateChanged } from 'firebase/auth';
+import {database, auth} from '../firebase.js'
+
+//interfaz
+//import { PasswordData } from  '../interface/passWordData.tsx'
+
+interface PasswordData {
+  platform: string;
+  password: string;
+  context: string; 
+}
 
 const PasswordGenerator = () => {
+
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     platform: '',
@@ -18,31 +38,58 @@ const PasswordGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [feedback, setFeedback] = useState('');
 
+  //Firabase Estados
+
+  const [user, setUser] = useState<User | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [passwordHistory, setPasswordHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const [loading, setLoading] = useState(true);
+
+
   const API_URL = 'http://localhost:5000/api/generate';
 
-  const steps = [
-    {
-      title: 'Hola Agent',
-      subtitle: 'Michael Poveda',
-      question: '¿Para qué plataforma necesitas la contraseña?',
-      placeholder: 'Ej: Facebook, Gmail, Banco...',
-      field: 'platform'
-    },
-    {
-      title: 'Hola Agent',
-      subtitle: 'Michael Poveda',
-      question: '¿Cuéntame algo personal que te guste o recuerdes?',
-      placeholder: 'Ej: La playa, mi gato, pizza...',
-      field: 'personalElement'
-    },
-    {
-      title: 'Hola Agent',
-      subtitle: 'Michael Poveda',
-      question: '¿Hay algún contexto específico que quieras incluir?',
-      placeholder: 'Ej: Trabajo, estudios, personal...',
-      field: 'context'
+    useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const savePasswordToFirebase = async (passwordData : PasswordData) => {
+    if (!user) {
+      setFeedback('Debes estar autenticado para guardar contraseñas');
+      return;
     }
-  ];
+
+    setIsSaving(true);
+    try {
+      const userPasswordsRef = ref(database, `users/${user.uid}/passwords`);
+      const newPasswordRef = push(userPasswordsRef);
+      console.log(user)
+      
+      await set(newPasswordRef, {
+        ...passwordData,
+        createdAt: serverTimestamp(),
+        userId: user.uid,
+        userEmail: user.email
+      });
+
+      setFeedback('¡Contraseña guardada exitosamente!');
+      setTimeout(() => setFeedback(''), 3000);
+
+    } catch (error) {
+      console.error('Error saving password:', error);
+      setFeedback('Error al guardar la contraseña');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+
 
   const handleInputChange = (value) => {
     setFormData(prev => ({
@@ -50,6 +97,7 @@ const PasswordGenerator = () => {
       [steps[currentStep].field]: value
     }));
   };
+
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -66,13 +114,7 @@ const PasswordGenerator = () => {
     setFeedback('');
     
     try {
-      // Configurar longitud según la selección
-      const lengthMapping = {
-        short: '8-12 caracteres',
-        medium: '12-16 caracteres',
-        long: '16-20 caracteres'
-      };
-
+    
       const prompt = `Eres un generador de contraseñas seguras y memorables. Genera una contraseña basada en los siguientes elementos:
 
 Plataforma: ${formData.platform}
@@ -88,8 +130,6 @@ INSTRUCCIONES ESPECÍFICAS:
 5. Integra la plataforma de manera orgánica
 6. Añade números relevantes al contexto pero SIEMPRE AL FINAL
 7. NO USAR SIMBOLOS NI EMOJIS
-
-
 
 EJEMPLO: Si es para Facebook, le gusta la playa y es personal, podrías generar algo como "LaPlayaEnFacebook"
 
@@ -114,6 +154,15 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
 
       setGeneratedPassword(password);
       setFeedback('¡Contraseña generada exitosamente con IA! Es segura y memorable.');
+      console.log(password);
+
+      const myPasswordData : PasswordData ={
+        password: password,
+        platform: formData.platform,
+        context: formData.context,
+      };
+      await savePasswordToFirebase(myPasswordData);
+
       
     } catch (error) {
       console.error('Error generating password:', error);
@@ -228,7 +277,6 @@ Responde SOLO con la contraseña generada, sin explicaciones adicionales.`;
             )}
 
             {/*Botones */}
-
 
             <div className="flex space-x-3">
               <button
