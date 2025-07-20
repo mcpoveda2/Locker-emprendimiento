@@ -14,22 +14,6 @@ import PlatformIcon from '../components/PlatformIcon.js';
 import type { PlatformData } from '../interface/PlatformData.tsx'
 import type { DataPass } from '../interface/DataPass.tsx'
 
-/*
-interface PlatformData {
-  context: string;
-  createdAt: number;
-  password: string;
-  platform: string;
-  userEmail: string;
-  userId: string;
-}
-
-interface DataPass {
-  [key: string]: PlatformData;
-}
-*/
-
-
 function Almacenador(){
 
     const navigate = useNavigate();
