@@ -15,8 +15,7 @@ const QRGenerator = () => {
 
     const password = location.state?.password as string;
 
-
-        // Función para generar el código QR
+    // Función para generar el código QR
     const generateQRCode = async () => {
         if (!password.trim()) {
         setQrImageUrl('');
@@ -49,66 +48,31 @@ const QRGenerator = () => {
 
     // Efecto para generar QR cuando cambia el texto (con delay para evitar muchas peticiones)
     useEffect(() => {
-        const timeoutId = setTimeout(() => {
         generateQRCode();
-        }, 500); // Espera 500ms después de que el usuario deje de escribir
-
-        return () => clearTimeout(timeoutId);
     });
 
-    // Función para descargar el QR
-    const downloadQR = async () => {
-        if (!qrImageUrl) return;
-
-        try {
-        const response = await fetch(qrImageUrl);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `qr-code-${Date.now()}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        window.URL.revokeObjectURL(url);
-        } catch (err) {
-        setError('Error al descargar la imagen');
-        }
-    };
-
-    // Función para copiar texto al portapapeles
-    const copyToClipboard = async () => {
-        try {
-        await navigator.clipboard.writeText(inputText);
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-        } catch (err) {
-        setError('No se pudo copiar al portapapeles');
-        }
-    };
-
-    // Ejemplos predefinidos
-    const examples = 'MiContraseña123!';
-
-    const setExample = (example : string) => {
-        setInputText(example);
-    };
-    
 
     return(
-        <div>
-            <div className="mb-6">
+        <div className="min-h-screen bg-green-100 p-4 flex flex-col item-center justify-center ">
+            
+
+            <h2 className="text-xl font-semibold text-black mb-4 text-center">Codigo Qr Generado</h2>
+            
+            <div className='flex item-center justify-center'>
+                <div className="mb-6">
                 <div className="inline-block p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl shadow-inner">
-                  <img
+                <img
                     src={qrImageUrl}
                     alt="Código QR generado"
                     className="mx-auto rounded-lg shadow-md border-4 border-white"
-                  />
+                />
                 </div>
             </div>
+
+            </div>
+              
         </div>
+        
     )
 
 }
