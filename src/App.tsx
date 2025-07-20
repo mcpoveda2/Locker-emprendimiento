@@ -19,6 +19,7 @@ import Almacenador from "./pages/Almacenador.js";
 import Ajustes from "./pages/Ajustes.js";
 import BottomNav from "./components/BottonNav.js";
 import PlatformDetail from "./pages/PlatformDetail.js";
+import QRGenerator from "./components/QrGenerator.js";
 
 
 function AppLayout() {
@@ -35,6 +36,7 @@ function AppLayout() {
             <Route path="/almacenador" element={<Almacenador />} />
             <Route path="/ajustes" element={<Ajustes />} />
             <Route path="/platform" element={<PlatformDetail />} />
+            <Route path="/platform/qr" element={<QRGenerator />} />
           </Routes>
         </div>
         <BottomNav />

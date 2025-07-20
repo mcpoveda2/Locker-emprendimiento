@@ -1,5 +1,6 @@
 import React, {useState} from "react";
 
+
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, QrCode, Camera, Copy, Eye, EyeOff } from 'lucide-react';
 
@@ -58,6 +59,11 @@ const PlatformDetail = () =>{
     const handleQRCode = () => {
         // Implementar funcionalidad del QR Code
         console.log('Generar QR Code');
+        navigate('qr',{
+            state:{
+                password : platformData.password
+            }
+        })
     };
 
     const handleScan = () => {
@@ -159,9 +165,6 @@ const PlatformDetail = () =>{
                 </div>
 
             </div>
-            
-
-
 
         </div>
     )
