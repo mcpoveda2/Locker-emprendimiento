@@ -1,4 +1,5 @@
 import React, { useState , useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Archive } from 'lucide-react';
 
 //firebase
@@ -24,6 +25,8 @@ interface DataPass {
 }
 
 function Almacenador(){
+
+    const navigate = useNavigate();
 
     
     const [user, setUser] = useState<string | null>(null);
@@ -63,7 +66,6 @@ function Almacenador(){
         });
     }
 
-
     const getPlatformColor = (platformName : string) => {
         const name = platformName.toLowerCase();
         if (name.includes('facebook')) return 'bg-blue-50';
@@ -82,8 +84,7 @@ function Almacenador(){
 
     const handleSocialButtonClick = (platformData : PlatformData) => {
         console.log(`Opening ${platformData.platform}...`, platformData);
-        // Aquí puedes agregar la lógica para abrir cada plataforma
-        // Tienes acceso a: platformData.name, platformData.username, platformData.password, etc.
+        navigate('/platform');
     };
 
 
@@ -143,7 +144,7 @@ function Almacenador(){
                 <button
                     onClick={() => setActiveFilter('Personal')}
                     className={`px-6 py-2 rounded-full font-medium transition-colors ${
-                        activeFilter === 'Entretenimiento'
+                        activeFilter === 'Personal'
                             ? 'bg-green-500 text-white'
                             : 'bg-gray-200 text-gray-700'
                     }`}
@@ -152,7 +153,7 @@ function Almacenador(){
                 </button> 
             </div>
 
-            {/* Social Media Cards - Automático con dataPASS */}
+            {/* Social Media Cards */}
             <div className="px-6 py-6 grid grid-cols-2 gap-4 flex-1">
                 {dataPass && Object.entries(dataPass).map(([key, platformData]) => {
                     const typedPlatformData = platformData as PlatformData;
@@ -186,11 +187,8 @@ function Almacenador(){
             </div>
 
 
-
-
         </div>
-        
-        
+         
     );
 }
 
