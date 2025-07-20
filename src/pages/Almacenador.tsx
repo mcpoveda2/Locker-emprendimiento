@@ -15,6 +15,7 @@ function Almacenador(){
     const [user, setUser] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('All');
+    const [dataPass, setDataPass] = useState(null);
 
 
     useEffect(() => {
@@ -22,21 +23,34 @@ function Almacenador(){
         if(currentUser){
             setUser(currentUser.uid);
             setLoading(false);
+            loadPasswordsFromFirebase(currentUser.uid);
         }
         });
         return () => unsubscribe();
     }, []);
 
 
-    
-    const loadPasswordsFromFirebase = async () =>{
-        const historyRef = ref(database, `users/${user}/passwords`);
+    useEffect(() => {
+        if (dataPass) {
+            console.log("Datos cargados:", dataPass);
+        }else{
+            console.log("Datos NO cargados");
+        }
+    }, [dataPass]);
+
+ 
+    const loadPasswordsFromFirebase = async (userID = user) =>{
+        const historyRef = ref(database, `users/${userID}/passwords`);
         onValue(historyRef, (snapshot)=>{
             const data = snapshot.val();
-            console.log(data);
-
+            setDataPass(data);
+                  
         });
     }
+
+
+
+
 
     if (loading) {
         return (
@@ -101,6 +115,10 @@ function Almacenador(){
                 >
                     Personal
                 </button>
+
+                
+
+
 
                 
                 
