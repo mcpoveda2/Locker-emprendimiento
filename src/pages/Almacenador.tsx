@@ -8,6 +8,26 @@ import {database, auth} from '../firebase.js'
 import { Search, Filter, Home, Wrench, Heart, Settings } from 'lucide-react';
 
 
+import facebookIcon from '../assets/facebook.png';
+import tikTokIcon from '../assets/tik-tok.png';
+import bancoPichincaIcon from '../assets/Banco-Pichincha.png';
+import bancoGuayaquilIcon from '../assets/bancoGuayaquil.png';
+import instagramIcon from '../assets/instagram.png';
+import youtubeIcon from '../assets/youtube.png';
+import linkedinIcon from '../assets/linkedin.png';
+
+interface PlatformData {
+  context: string;
+  createdAt: number;
+  password: string;
+  platform: string;
+  userEmail: string;
+  userId: string;
+}
+
+interface DataPass {
+  [key: string]: PlatformData;
+}
 
 function Almacenador(){
 
@@ -15,7 +35,8 @@ function Almacenador(){
     const [user, setUser] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('All');
-    const [dataPass, setDataPass] = useState(null);
+
+    const [dataPass, setDataPass] = useState<DataPass | null>(null);
 
 
     useEffect(() => {
@@ -48,8 +69,53 @@ function Almacenador(){
         });
     }
 
+    const getPlatformIcon = (platformName : string) => {
+        const name = platformName.toLowerCase();
+
+        if (name.includes('facebook')) {
+        return (
+            <div className="w-16 h-16 rounded-full flex items-center justify-center">
+                <img 
+                    src={facebookIcon} 
+                    alt="Facebook" 
+                    className="w-10 h-10 object-contain"
+                />
+            </div>
+        );
+        } else if (name.includes('instagram')) {
+        return (
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center">
+                <img 
+                    src={instagramIcon} 
+                    alt="Instagram" 
+                    className="w-10 h-10 object-contain"
+                />
+            </div>
+        );
+        }
+    }
+
+    const getPlatformColor = (platformName : string) => {
+        const name = platformName.toLowerCase();
+        if (name.includes('facebook')) return 'bg-blue-50';
+        if (name.includes('instagram')) return 'bg-pink-50';
+        if (name.includes('pinterest')) return 'bg-red-50';
+        if (name.includes('x') || name.includes('twitter')) return 'bg-purple-50';
+        else return getRandomColor()
+       
+    };
+
+    const getRandomColor = () => {
+        const colors = ['bg-green-50', 'bg-blue-50', 'bg-purple-50', 'bg-red-50', 'bg-yellow-50', 'bg-pink-50', 'bg-indigo-50'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    };
 
 
+    const handleSocialButtonClick = (platformData : PlatformData) => {
+        console.log(`Opening ${platformData.platform}...`, platformData);
+        // Aquí puedes agregar la lógica para abrir cada plataforma
+        // Tienes acceso a: platformData.name, platformData.username, platformData.password, etc.
+    };
 
 
     if (loading) {
@@ -114,22 +180,45 @@ function Almacenador(){
                     }`}
                 >
                     Personal
-                </button>
+                </button> 
+            </div>
 
-                
+            {/* Social Media Cards - Automático con dataPASS */}
+            <div className="px-6 py-6 grid grid-cols-2 gap-4 flex-1">
+                {dataPass && Object.entries(dataPass).map(([key, platformData]) => {
+                    const typedPlatformData = platformData as PlatformData;
+                    
+                    return (
+                        <button
+                            key={key}
+                            onClick={() => handleSocialButtonClick(typedPlatformData)}
+                            className={`${getPlatformColor(typedPlatformData.platform)} relative overflow-hidden rounded-3xl shadow-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 border border-gray-100/50`}
+                            style={{ aspectRatio: '1', minHeight: '140px' }}
+                        >
+                            <div className="absolute inset-0 p-4 flex flex-col justify-between h-full">
+                                {/* Ícono en la parte superior */}
+                                <div className="flex justify-start">
+                                    {getPlatformIcon(typedPlatformData.platform)}
+                                </div>
+                                
+                                {/* Nombre en la parte inferior */}
+                                <div className="flex justify-start">
+                                    <span className="text-gray-900 font-medium text-lg text-left">
+                                        {typedPlatformData.platform}
+                                    </span>
+                                </div>
+                            </div>
 
-
-
-                
-                
+                            {/* Efecto de brillo sutil */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                        </button>
+                    );
+                })}
             </div>
 
 
-            <button onClick={loadPasswordsFromFirebase}>
-                ola
-            </button>
 
-            
+
         </div>
         
         
