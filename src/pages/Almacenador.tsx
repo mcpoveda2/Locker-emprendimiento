@@ -8,13 +8,7 @@ import {database, auth} from '../firebase.js'
 import { Search, Filter, Home, Wrench, Heart, Settings } from 'lucide-react';
 
 
-import facebookIcon from '../assets/facebook.png';
-import tikTokIcon from '../assets/tik-tok.png';
-import bancoPichincaIcon from '../assets/Banco-Pichincha.png';
-import bancoGuayaquilIcon from '../assets/bancoGuayaquil.png';
-import instagramIcon from '../assets/instagram.png';
-import youtubeIcon from '../assets/youtube.png';
-import linkedinIcon from '../assets/linkedin.png';
+import PlatformIcon from '../components/PlatformIcon.js';
 
 interface PlatformData {
   context: string;
@@ -69,31 +63,6 @@ function Almacenador(){
         });
     }
 
-    const getPlatformIcon = (platformName : string) => {
-        const name = platformName.toLowerCase();
-
-        if (name.includes('facebook')) {
-        return (
-            <div className="w-16 h-16 rounded-full flex items-center justify-center">
-                <img 
-                    src={facebookIcon} 
-                    alt="Facebook" 
-                    className="w-10 h-10 object-contain"
-                />
-            </div>
-        );
-        } else if (name.includes('instagram')) {
-        return (
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center">
-                <img 
-                    src={instagramIcon} 
-                    alt="Instagram" 
-                    className="w-10 h-10 object-contain"
-                />
-            </div>
-        );
-        }
-    }
 
     const getPlatformColor = (platformName : string) => {
         const name = platformName.toLowerCase();
@@ -198,7 +167,7 @@ function Almacenador(){
                             <div className="absolute inset-0 p-4 flex flex-col justify-between h-full">
                                 {/* Ícono en la parte superior */}
                                 <div className="flex justify-start">
-                                    {getPlatformIcon(typedPlatformData.platform)}
+                                    <PlatformIcon platformName = {typedPlatformData.platform}/>
                                 </div>
                                 
                                 {/* Nombre en la parte inferior */}
