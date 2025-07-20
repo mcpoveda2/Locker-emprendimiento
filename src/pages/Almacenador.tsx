@@ -10,7 +10,11 @@ import { Search, Filter, Home, Wrench, Heart, Settings } from 'lucide-react';
 
 
 import PlatformIcon from '../components/PlatformIcon.js';
+//interfaces
+import type { PlatformData } from '../interface/PlatformData.tsx'
+import type { DataPass } from '../interface/DataPass.tsx'
 
+/*
 interface PlatformData {
   context: string;
   createdAt: number;
@@ -23,6 +27,8 @@ interface PlatformData {
 interface DataPass {
   [key: string]: PlatformData;
 }
+*/
+
 
 function Almacenador(){
 
@@ -32,8 +38,7 @@ function Almacenador(){
     const [user, setUser] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState('All');
-
-    const [dataPass, setDataPass] = useState<DataPass | null>(null);
+    const [dataPass, setDataPass] = useState<DataPass | null>(null);//datos
 
 
     useEffect(() => {
@@ -81,10 +86,14 @@ function Almacenador(){
         return colors[Math.floor(Math.random() * colors.length)];
     };
 
-
+    //  Manejar las plataformas
     const handleSocialButtonClick = (platformData : PlatformData) => {
         console.log(`Opening ${platformData.platform}...`, platformData);
-        navigate('/platform');
+        navigate('/platform',{
+            state:{
+                platformData : platformData
+            }
+        });
     };
 
 
