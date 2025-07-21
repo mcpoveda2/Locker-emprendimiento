@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { QrCode, Download, Copy, Eye, EyeOff } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Heart, QrCode, Camera, Copy, Eye, EyeOff } from 'lucide-react';
+
 
 
 const QRGenerator = () => {
     const location = useLocation();
+    const navigate = useNavigate();
 
     const [inputText, setInputText] = useState('');
     const [qrImageUrl, setQrImageUrl] = useState('');
@@ -53,8 +55,24 @@ const QRGenerator = () => {
 
 
     return(
-        <div className="min-h-screen bg-green-100 p-4 flex flex-col item-center justify-center ">
-            
+
+        <div>
+            {/* Header */}
+            <div className="bg-white px-4 py-4 border-b border-gray-200 flex items-center justify-between">
+                <button 
+                onClick={() => navigate(-1)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                <ArrowLeft className="w-6 h-6 text-gray-700" />
+                </button>
+                <h1 className="text-xl font-semibold">Seccion</h1>
+                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <Heart className="w-6 h-6 text-gray-400 hover:text-red-500" />
+                </button>
+            </div>  
+
+            <div className="min-h-screen bg-green-100 p-4 flex flex-col item-center justify-center ">
+             
 
             <h2 className="text-xl font-semibold text-black mb-4 text-center">Codigo Qr Generado</h2>
             
@@ -72,6 +90,9 @@ const QRGenerator = () => {
             </div>
               
         </div>
+
+        </div>
+        
         
     )
 

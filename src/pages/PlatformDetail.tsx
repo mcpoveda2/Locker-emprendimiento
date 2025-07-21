@@ -69,6 +69,11 @@ const PlatformDetail = () =>{
     const handleScan = () => {
         // Implementar funcionalidad de escanear
         console.log('Escanear');
+        navigate('scanner',{
+            state:{
+                password : platformData.password
+            }
+        })
     };
 
     return(

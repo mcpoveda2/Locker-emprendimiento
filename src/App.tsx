@@ -20,6 +20,7 @@ import Ajustes from "./pages/Ajustes.js";
 import BottomNav from "./components/BottonNav.js";
 import PlatformDetail from "./pages/PlatformDetail.js";
 import QRGenerator from "./components/QrGenerator.js";
+import Scanner from "./components/Scanner.js";
 
 
 function AppLayout() {
@@ -37,6 +38,7 @@ function AppLayout() {
             <Route path="/ajustes" element={<Ajustes />} />
             <Route path="/platform" element={<PlatformDetail />} />
             <Route path="/platform/qr" element={<QRGenerator />} />
+            <Route path="/platform/scanner" element={<Scanner />} />
           </Routes>
         </div>
         <BottomNav />
