@@ -8,21 +8,96 @@ const Scanner = () =>{
     const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState(null);
     const [captureCount, setCaptureCount] = useState(0);
+    const [capturedPhotos, setCapturedPhotos] = useState([]);
+    const [qrResults, setQrResults] = useState([]); // Para almacenar resultados de QR
+    const [isProcessingQR, setIsProcessingQR] = useState(false);
     
     const videoRef = useRef(null);
     const streamRef = useRef(null);
     const intervalRef = useRef(null);
-
-
     const navigate = useNavigate();
+
 
     const qr_api = 'http://api.qrserver.com/v1/read-qr-code/?fileurl=';
     
-    // Función para capturar foto
-    const capturePhoto = () => {
-        console.log("en capture");
+    const processQRCode = async (blob, photoId) => {
+        try {
+            setIsProcessingQR(true);
+            
+            // Crear FormData para enviar la imagen
+            const formData = new FormData();
+            formData.append('file', blob, `capture_${photoId}.jpg`);
+            
+            console.log(`Procesando QR para foto #${photoId}...`);
+            
+            const response = await fetch('https://api.qrserver.com/v1/read-qr-code/', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log(`Resultado QR para foto #${photoId}:`, result);
+            
+            // La API devuelve un array con los resultados
+            if (result && result.length > 0) {
+                const qrData = result[0];
+                
+                if (qrData.symbol && qrData.symbol.length > 0) {
+                    const qrContent = qrData.symbol[0].data;
+                    const qrError = qrData.symbol[0].error;
+                    
+                    if (qrContent && !qrError) {
+                        // QR detectado exitosamente
+                        const newQRResult = {
+                            id: photoId,
+                            content: qrContent,
+                            timestamp: new Date().toLocaleTimeString(),
+                            success: true
+                        };
+                        
+                        setQrResults(prev => [...prev, newQRResult]);
+                        
+                        console.log(`🎉 QR detectado en foto #${photoId}:`, qrContent);
+                        
+                        // Opcional: detener el escaneo automáticamente cuando se detecta un QR
+                        // stopCamera();
+                        
+                        return newQRResult;
+                    } else if (qrError) {
+                        console.log(`❌ Error en QR foto #${photoId}:`, qrError);
+                    }
+                } else {
+                    console.log(`📷 No se detectó QR en foto #${photoId}`);
+                }
+            }
+            
+            return null;
+            
+        } catch (error) {
+            console.error(`Error procesando QR para foto #${photoId}:`, error);
+            
+            const errorResult = {
+                id: photoId,
+                error: error.message,
+                timestamp: new Date().toLocaleTimeString(),
+                success: false
+            };
+            
+            setQrResults(prev => [...prev, errorResult]);
+            return null;
+        } finally {
+            setIsProcessingQR(false);
+        }
+    };
+
+    // Función mejorada para capturar foto y procesar QR automáticamente
+    const capturePhoto = async () => {
         if (!videoRef.current) return;
-        console.log("en capture")
+        
         const video = videoRef.current;
         
         // Crear canvas para capturar el frame
@@ -33,67 +108,128 @@ const Scanner = () =>{
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0);
         
-        // Incrementar contador de capturas
-        setCaptureCount(prev => prev + 1);
-        
-        console.log(`Foto capturada #${captureCount + 1}`, {
-        width: canvas.width,
-        height: canvas.height,
-        timestamp: new Date().toLocaleTimeString()
+        // Convertir a blob
+        canvas.toBlob(async (blob) => {
+            if (blob) {
+                const imageUrl = URL.createObjectURL(blob);
+                const timestamp = new Date().toLocaleTimeString();
+                
+                // Actualizar contador y agregar foto al array
+                setCaptureCount(prev => {
+                    const newCount = prev + 1;
+                    
+                    // Agregar foto al estado
+                    setCapturedPhotos(prevPhotos => [...prevPhotos, {
+                        id: newCount,
+                        url: imageUrl,
+                        blob: blob,
+                        timestamp: timestamp,
+                        width: canvas.width,
+                        height: canvas.height,
+                        qrProcessed: false
+                    }]);
+                    
+                    console.log(`Foto capturada #${newCount}`, {
+                        width: canvas.width,
+                        height: canvas.height,
+                        timestamp: timestamp
+                    });
+                    
+                    // Procesar QR automáticamente
+                    processQRCode(blob, newCount).then(qrResult => {
+                        if (qrResult && qrResult.success) {
+                            // Marcar la foto como procesada exitosamente
+                            setCapturedPhotos(prevPhotos => 
+                                prevPhotos.map(photo => 
+                                    photo.id === newCount 
+                                        ? { ...photo, qrProcessed: true, qrContent: qrResult.content }
+                                        : photo
+                                )
+                            );
+                        }
+                    });
+                    
+                    return newCount;
+                });
+            }
+        }, 'image/jpeg', 0.8);
+    };
+
+    // Función para reenviar una foto específica a la API de QR
+    const reprocessQR = async (photo) => {
+        await processQRCode(photo.blob, photo.id);
+    };
+
+    // Función para copiar contenido QR al portapapeles
+    const copyQRContent = async (content) => {
+        try {
+            await navigator.clipboard.writeText(content);
+            alert('Contenido copiado al portapapeles!');
+        } catch (err) {
+            console.error('Error copiando al portapapeles:', err);
+        }
+    };
+
+    // Función para descargar una foto
+    const downloadPhoto = (photo) => {
+        const link = document.createElement('a');
+        link.href = photo.url;
+        link.download = `captura_${photo.id}_${photo.timestamp.replace(/:/g, '-')}.jpg`;
+        link.click();
+    };
+
+    // Función para limpiar todas las fotos
+    const clearAllPhotos = () => {
+        capturedPhotos.forEach(photo => {
+            URL.revokeObjectURL(photo.url);
         });
+        setCapturedPhotos([]);
+        setCaptureCount(0);
+        setQrResults([]);
     };
 
     const startCamera = async () => {
-    try {
-      setError(null);
-      setCaptureCount(0);
-      
-      console.log('Iniciando cámara...');
-      
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment', // Cámara trasera
-          width: { ideal: 640 },
-          height: { ideal: 480 }
+        try {
+            setError(null);
+            setCaptureCount(0);
+            setCapturedPhotos([]);
+            setQrResults([]);
+            
+            console.log('Iniciando cámara...');
+            
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                }
+            });
+            
+            setIsScanning(true);
+            streamRef.current = stream;
+            
+            setTimeout(() => {
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    
+                    videoRef.current.onloadedmetadata = () => {
+                        console.log('Video listo, iniciando capturas cada segundo...');
+                        intervalRef.current = setInterval(capturePhoto, 1000);
+                    };
+                } else {
+                    setError('Error: No se pudo acceder al elemento video');
+                    stream.getTracks().forEach(track => track.stop());
+                    setIsScanning(false);
+                }
+            }, 100);
+            
+        } catch (err) {
+            setError('Error al acceder a la cámara: ' + err.message);
+            console.error('Error:', err);
+            setIsScanning(false);
         }
-      });
-      
-      console.log('Stream obtenido:', stream);
-      
-      // PRIMERO cambiar el estado para que se renderice el video element
-      setIsScanning(true);
-      streamRef.current = stream;
-      
-      // LUEGO usar setTimeout para que React termine de renderizar
-      setTimeout(() => {
-        console.log('videoRef.current después del render:', videoRef.current);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          console.log('Stream asignado al video');
-          
-          // Esperar a que el video cargue y luego empezar a capturar cada segundo
-          videoRef.current.onloadedmetadata = () => {
-            console.log('Video listo, iniciando capturas cada segundo...');
-            intervalRef.current = setInterval(capturePhoto, 1000);
-          };
-        } else {
-          console.error('videoRef.current sigue siendo null después del render');
-          setError('Error: No se pudo acceder al elemento video');
-          // Detener el stream si no podemos usarlo
-          stream.getTracks().forEach(track => track.stop());
-          setIsScanning(false);
-        }
-      }, 100);
-      
-    } catch (err) {
-      setError('Error al acceder a la cámara: ' + err.message);
-      console.error('Error:', err);
-      setIsScanning(false);
-    }
-  };
+    };
 
-    // Detener la cámara
     const stopCamera = () => {
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
@@ -107,13 +243,15 @@ const Scanner = () =>{
             videoRef.current.srcObject = null;
         }
         setIsScanning(false);
-        setCaptureCount(0);
     };
 
     // Limpiar al desmontar
     useEffect(() => {
         return () => {
-        stopCamera();
+            stopCamera();
+            capturedPhotos.forEach(photo => {
+                URL.revokeObjectURL(photo.url);
+            });
         };
     }, []);
 
