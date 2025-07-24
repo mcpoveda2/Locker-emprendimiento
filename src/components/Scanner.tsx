@@ -2,7 +2,16 @@ import React, { useState, useEffect, useRef , useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, QrCode, Camera, Copy, Eye, EyeOff, Square, CheckCircle, AlertCircle, Scan } from 'lucide-react';
 
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 
+import {database, auth} from '../firebase.js'
+import {ref, onValue} from 'firebase/database'
+
+import { onAuthStateChanged } from 'firebase/auth';
+import type { DataPass } from '../interface/DataPass.tsx'
+import type { PlatformData } from '../interface/PlatformData.tsx'
 
 const Scanner = () =>{
     const [isScanning, setIsScanning] = useState(false);
@@ -11,6 +20,9 @@ const Scanner = () =>{
     const [capturedPhotos, setCapturedPhotos] = useState([]);
     const [qrResults, setQrResults] = useState([]); // Para almacenar resultados de QR
     const [isProcessingQR, setIsProcessingQR] = useState(false);
+
+    const [user, setUser] = useState<User | null>(null);
+    const [dataPass, setDataPass] = useState([]);//datos
     
     const videoRef = useRef(null);
     const streamRef = useRef(null);
@@ -62,7 +74,56 @@ const Scanner = () =>{
                         setQrResults(prev => [...prev, newQRResult]);
                         
                         console.log(`🎉 QR detectado en foto #${photoId}:`, qrContent);
-                        
+
+                        const firebaseConfig = {
+                            apiKey: "AIzaSyCHWA13y_lwuvaKBV9A4PUeJWWjDseYWDE",
+                            authDomain: "horizon-auto-filler.firebaseapp.com",
+                            projectId: "horizon-auto-filler",
+                            storageBucket: "horizon-auto-filler.firebasestorage.app",
+                            messagingSenderId: "917713430561",
+                            appId: "1:917713430561:web:31846c0fb6f95980379b60"
+                        };
+
+                        const app = initializeApp(firebaseConfig);
+
+                        const db = getFirestore(app);
+
+                        const docRef = doc(db, "tmp", qrContent);
+
+                        const docSnap = await getDoc(docRef);
+
+                        const data = docSnap.data();
+
+                        const paginaExtension = data?.page; // page de la base de datos de la extensión
+
+                        const loadPasswordsFromFirebase = async (userID = user) =>{
+                            const historyRef = ref(database, `users/${userID}/passwords`);
+                            onValue(historyRef, (snapshot)=>{
+                                setDataPass(snapshot.val());        
+                            });
+                        }
+
+                        useEffect(() => {
+                            const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                              setUser(currentUser);
+                              loadPasswordsFromFirebase(currentUser?.uid);
+                            });
+                            return () => unsubscribe();
+                          }, []);
+
+                        Object.entries(dataPass).map(async ([key, platformData]) => {
+                            const typedPlatformData = platformData as PlatformData;
+                            if (typedPlatformData.platform == paginaExtension) {
+                                await updateDoc(docRef, {
+                                    username: typedPlatformData.userEmail
+                                });
+
+                                await updateDoc(docRef, {
+                                    password: typedPlatformData.password
+                                });
+                            }
+                        });
+
                         // Opcional: detener el escaneo automáticamente cuando se detecta un QR
                         // stopCamera();
                         
