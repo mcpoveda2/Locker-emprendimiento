@@ -84,7 +84,7 @@ const Scanner = () =>{
                             appId: "1:917713430561:web:31846c0fb6f95980379b60"
                         };
 
-                        const app = initializeApp(firebaseConfig);
+                        const app = initializeApp(firebaseConfig, "secondary");
 
                         const db = getFirestore(app);
 
@@ -94,35 +94,50 @@ const Scanner = () =>{
 
                         const data = docSnap.data();
 
+                        console.log(`Datos de la plataforma:`, data);
+
                         const paginaExtension = data?.page; // page de la base de datos de la extensión
 
                         const loadPasswordsFromFirebase = async (userID = user) =>{
+                            console.log(`Cargando datos de la plataforma para el usuario: ${userID}`);
                             const historyRef = ref(database, `users/${userID}/passwords`);
                             onValue(historyRef, (snapshot)=>{
-                                setDataPass(snapshot.val());        
+                                console.log(`Datos de la plataforma:`, snapshot.val());
+                                setDataPass(snapshot.val()); 
+                                
+                                Object.entries(dataPass).map(async ([key, platformData]) => {
+                                    console.log(`Plataforma:`, platformData);
+                                    if (platformData.platform.toLowerCase() == paginaExtension.toLowerCase()) {
+                                        console.log(`Actualizando datos para la plataforma: ${platformData.platform}`);
+                                        await updateDoc(docRef, {
+                                            username: platformData.userEmail,
+                                            password: platformData.password
+                                        });
+                                    };
+                                });
                             });
                         }
 
-                        useEffect(() => {
-                            const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
                               setUser(currentUser);
                               loadPasswordsFromFirebase(currentUser?.uid);
-                            });
-                            return () => unsubscribe();
-                          }, []);
-
-                        Object.entries(dataPass).map(async ([key, platformData]) => {
-                            const typedPlatformData = platformData as PlatformData;
-                            if (typedPlatformData.platform == paginaExtension) {
-                                await updateDoc(docRef, {
-                                    username: typedPlatformData.userEmail
-                                });
-
-                                await updateDoc(docRef, {
-                                    password: typedPlatformData.password
-                                });
-                            }
                         });
+
+                        // console.log(`Datos de la plataforma 2:`, dataPass);
+
+                        // Object.entries(dataPass).map(async ([key, platformData]) => {
+                        //     const typedPlatformData = platformData as PlatformData;
+                        //     if (typedPlatformData.platform.toLowerCase() == paginaExtension.toLowerCase()) {
+                        //         console.log(`Actualizando datos para la plataforma: ${typedPlatformData.platform}`);
+                        //         // await updateDoc(docRef, {
+                        //         //     username: typedPlatformData.userEmail
+                        //         // });
+
+                        //         // await updateDoc(docRef, {
+                        //         //     password: typedPlatformData.password
+                        //         // });
+                        //     }
+                        // });
 
                         // Opcional: detener el escaneo automáticamente cuando se detecta un QR
                         // stopCamera();

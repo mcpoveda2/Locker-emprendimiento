@@ -62,8 +62,7 @@ function App(){
 
   return(
     <>
-      {/*
-      {user ? <AppLayout/> : <SignIn/>}*/}
+      {user ? <AppLayout/> : <SignIn/>}
       <AppLayout/>
 
     </>
